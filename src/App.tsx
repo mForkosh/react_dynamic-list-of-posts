@@ -8,53 +8,116 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
+import React, { useMemo, useState } from 'react';
+import { User } from './types/User';
+import { getAllUsers } from './api/users';
+import { Post } from './types/Post';
+import { getUserPosts } from './api/posts';
 
-export const App = () => (
-  <main className="section">
-    <div className="container">
-      <div className="tile is-ancestor">
-        <div className="tile is-parent">
-          <div className="tile is-child box is-success">
-            <div className="block">
-              <UserSelector />
-            </div>
+export const App = () => {
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<null | User>(null);
 
-            <div className="block" data-cy="MainContent">
-              <p data-cy="NoSelectedUser">No user selected</p>
+  const [userPosts, setUserPosts] = useState<null | Post[]>(null);
 
-              <Loader />
+  const [loadingData, setLoadingData] = useState(false);
+  const [error, setError] = useState(false);
 
-              <div
-                className="notification is-danger"
-                data-cy="PostsLoadingError"
-              >
-                Something went wrong!
+  useMemo(async () => {
+    try {
+      const loadedUsers: User[] = await getAllUsers();
+
+      setAllUsers(loadedUsers);
+    } catch {
+      setError(true);
+    }
+  }, []); //Get all users
+
+  useMemo(async () => {
+    if (!selectedUser) {
+      return;
+    }
+
+    setLoadingData(true);
+    try {
+      const loadedUserPosts = await getUserPosts(selectedUser.id);
+
+      setUserPosts(loadedUserPosts);
+    } catch {
+      setError(true);
+    } finally {
+      setLoadingData(false);
+    }
+  }, [selectedUser]); //Get user posts
+
+  return (
+    <main className="section">
+      <div className="container">
+        <div className="tile is-ancestor">
+          <div className="tile is-parent">
+            <div className="tile is-child box is-success">
+              <div className="block">
+                <UserSelector
+                  allUsers={allUsers}
+                  activeUser={selectedUser}
+                  onChangeActiveUser={user => setSelectedUser(user)}
+                />
               </div>
 
-              <div className="notification is-warning" data-cy="NoPostsYet">
-                No posts yet
-              </div>
+              <div className="block" data-cy="MainContent">
+                {!selectedUser && (
+                  <p data-cy="NoSelectedUser">No user selected</p>
+                )}
 
-              <PostsList />
+                {loadingData && <Loader />}
+
+                {!loadingData && (
+                  <>
+                    {error && (
+                      <div
+                        className="notification is-danger"
+                        data-cy="PostsLoadingError"
+                      >
+                        Something went wrong!
+                      </div>
+                    )}
+
+                    {userPosts?.length === 0 && (
+                      <div
+                        className="notification is-warning"
+                        data-cy="NoPostsYet"
+                      >
+                        No posts yet
+                      </div>
+                    )}
+
+                    {userPosts && userPosts.length > 0 && (
+                      <PostsList posts={userPosts} />
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          data-cy="Sidebar"
-          className={classNames(
-            'tile',
-            'is-parent',
-            'is-8-desktop',
-            'Sidebar',
-            'Sidebar--open',
+          {false && (
+            <div
+              data-cy="Sidebar"
+              className={classNames(
+                'tile',
+                'is-parent',
+                'is-8-desktop',
+                'Sidebar',
+                'Sidebar--open',
+              )}
+            >
+              <div className="tile is-child box is-success ">
+                <PostDetails />
+              </div>
+            </div>
           )}
-        >
-          <div className="tile is-child box is-success ">
-            <PostDetails />
-          </div>
         </div>
       </div>
-    </div>
-  </main>
-);
+    </main>
+  );
+};
