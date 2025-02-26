@@ -19,6 +19,7 @@ export const App = () => {
   const [selectedUser, setSelectedUser] = useState<null | User>(null);
 
   const [userPosts, setUserPosts] = useState<null | Post[]>(null);
+  const [selectedPosts, setSelectedPosts] = useState<null | Post>(null);
 
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState(false);
@@ -33,14 +34,12 @@ export const App = () => {
     }
   }, []); //Get all users
 
-  useMemo(async () => {
-    if (!selectedUser) {
-      return;
-    }
+  async function selectUser(user: User) {
+    setSelectedUser(user);
 
     setLoadingData(true);
     try {
-      const loadedUserPosts = await getUserPosts(selectedUser.id);
+      const loadedUserPosts = await getUserPosts(user.id);
 
       setUserPosts(loadedUserPosts);
     } catch {
@@ -48,7 +47,7 @@ export const App = () => {
     } finally {
       setLoadingData(false);
     }
-  }, [selectedUser]); //Get user posts
+  } //Get user posts
 
   return (
     <main className="section">
@@ -60,7 +59,7 @@ export const App = () => {
                 <UserSelector
                   allUsers={allUsers}
                   activeUser={selectedUser}
-                  onChangeActiveUser={user => setSelectedUser(user)}
+                  onChangeActiveUser={selectUser}
                 />
               </div>
 
@@ -92,7 +91,11 @@ export const App = () => {
                     )}
 
                     {userPosts && userPosts.length > 0 && (
-                      <PostsList posts={userPosts} />
+                      <PostsList
+                        posts={userPosts}
+                        selectedPost={selectedPosts}
+                        onChangeSelectedPost={setSelectedPosts}
+                      />
                     )}
                   </>
                 )}
@@ -100,22 +103,22 @@ export const App = () => {
             </div>
           </div>
 
-          {false && (
-            <div
-              data-cy="Sidebar"
-              className={classNames(
-                'tile',
-                'is-parent',
-                'is-8-desktop',
-                'Sidebar',
-                'Sidebar--open',
-              )}
-            >
+          <div
+            data-cy="Sidebar"
+            className={classNames(
+              'tile',
+              'is-parent',
+              'is-8-desktop',
+              'Sidebar',
+              { 'Sidebar--open': selectedPosts },
+            )}
+          >
+            {selectedPosts && (
               <div className="tile is-child box is-success ">
-                <PostDetails />
+                <PostDetails post={selectedPosts} />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </main>
