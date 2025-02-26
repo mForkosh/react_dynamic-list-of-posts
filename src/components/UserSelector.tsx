@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { User } from '../types/User';
 import classNames from 'classnames';
 type Props = {
@@ -13,14 +13,37 @@ export const UserSelector: React.FC<Props> = ({
   onChangeActiveUser,
 }) => {
   const [showDropdownItems, setShowDropdownItems] = useState(false);
+  const dropDownMenu = useRef<HTMLDivElement | null>(null);
 
   function clickOnUser(user: User) {
     onChangeActiveUser(user);
     setShowDropdownItems(false);
   }
 
+  useEffect(() => {
+    const hendlClick = (e: MouseEvent) => {
+      if (
+        dropDownMenu.current &&
+        e.target instanceof Node &&
+        !dropDownMenu.current.contains(e.target)
+      ) {
+        setShowDropdownItems(false);
+      }
+    };
+
+    document.addEventListener('click', hendlClick);
+
+    return () => {
+      document.removeEventListener('click', hendlClick);
+    };
+  }, []);
+
   return (
-    <div data-cy="UserSelector" className="dropdown is-active">
+    <div
+      data-cy="UserSelector"
+      className={classNames('dropdown', { 'is-active': showDropdownItems })}
+      ref={dropDownMenu}
+    >
       <div className="dropdown-trigger">
         <button
           type="button"
@@ -37,24 +60,22 @@ export const UserSelector: React.FC<Props> = ({
         </button>
       </div>
 
-      {showDropdownItems && (
-        <div className="dropdown-menu" id="dropdown-menu" role="menu">
-          <div className="dropdown-content">
-            {allUsers.map(user => (
-              <a
-                key={user.id}
-                href={`#user-${user.id}`}
-                className={classNames('dropdown-item', {
-                  'is-active': user.id === activeUser?.id,
-                })}
-                onClick={() => clickOnUser(user)}
-              >
-                {user.name}
-              </a>
-            ))}
-          </div>
+      <div className="dropdown-menu" id="dropdown-menu" role="menu">
+        <div className="dropdown-content">
+          {allUsers.map(user => (
+            <a
+              key={user.id}
+              href={`#user-${user.id}`}
+              className={classNames('dropdown-item', {
+                'is-active': user.id === activeUser?.id,
+              })}
+              onClick={() => clickOnUser(user)}
+            >
+              {user.name}
+            </a>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };

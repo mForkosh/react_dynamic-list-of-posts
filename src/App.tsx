@@ -10,9 +10,9 @@ import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
 import React, { useMemo, useState } from 'react';
 import { User } from './types/User';
-import { getAllUsers } from './api/users';
+import { getAllUsers } from './api/fetchUsers';
 import { Post } from './types/Post';
-import { getUserPosts } from './api/posts';
+import { getUserPosts } from './api/fetchPosts';
 
 export const App = () => {
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -36,6 +36,7 @@ export const App = () => {
 
   async function selectUser(user: User) {
     setSelectedUser(user);
+    setSelectedPosts(null);
 
     setLoadingData(true);
     try {

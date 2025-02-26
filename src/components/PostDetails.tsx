@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Loader } from './Loader';
 import { NewCommentForm } from './NewCommentForm';
 import { Post } from '../types/Post';
-import * as client from '../api/comments';
+import * as client from '../api/fetchComments';
 import { CommentsList } from './CommentsList';
 import { Comment } from '../types/Comment';
 
