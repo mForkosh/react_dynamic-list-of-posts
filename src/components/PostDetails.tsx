@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Loader } from './Loader';
 import { NewCommentForm } from './NewCommentForm';
 import { Post } from '../types/Post';
@@ -13,49 +13,54 @@ type Props = {
 export const PostDetails: React.FC<Props> = ({ post }) => {
   const [loadingComments, setLoadingComments] = useState(false);
   const [postComments, setPostComments] = useState<Comment[] | null>(null);
-  const [formIsSHow, setFormIsShow] = useState(false);
-  const [error, setError] = useState(false);
+  const [formIsShow, setFormIsShow] = useState(false);
+  const [error, setError] = useState('');
 
   const { id, title, body } = post;
 
-  async function deleteComent(commId: number) {
-    setError(false);
+  async function deleteComment(commId: number) {
+    setError('');
     setPostComments(cur =>
       cur ? cur.filter(comm => commId !== comm.id) : null,
     );
     try {
       await client.deletePostComment(commId);
     } catch {
-      setError(true);
+      setError('Failed to remove the commentary, try later');
       setPostComments(postComments);
     }
   }
 
   async function addNewComment(comm: Omit<Comment, 'id' | 'postId'>) {
+    setError('');
     try {
-      const promis = await client.addNewComment({ ...comm, postId: id });
+      const promise = await client.addNewComment({ ...comm, postId: id });
 
-      setPostComments(cur => (cur ? [...cur, promis] : null));
+      setPostComments(cur => (cur ? [...cur, promise] : null));
     } catch (er) {
-      setError(true);
+      setError('Failed to add a commentary, try later');
       setFormIsShow(false);
     }
   }
 
-  useMemo(async () => {
-    setLoadingComments(true);
-    setFormIsShow(false);
+  useEffect(() => {
+    async function getComments() {
+      setLoadingComments(true);
+      setFormIsShow(false);
 
-    try {
-      setError(false);
-      const comments = await client.getPostComments(id);
+      try {
+        setError('');
+        const comments = await client.getPostComments(id);
 
-      setPostComments(comments);
-    } catch {
-      setError(true);
-    } finally {
-      setLoadingComments(false);
+        setPostComments(comments);
+      } catch {
+        setError('Failed to load comments');
+      } finally {
+        setLoadingComments(false);
+      }
     }
+
+    getComments();
   }, [id]);
 
   return (
@@ -72,7 +77,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
 
           {error && !loadingComments && (
             <div className="notification is-danger" data-cy="CommentsError">
-              Something went wrong
+              {error}
             </div>
           )}
 
@@ -87,13 +92,13 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
               {postComments.length > 0 && (
                 <CommentsList
                   comments={postComments}
-                  onDeleteComment={commemtId => deleteComent(commemtId)}
+                  onDeleteComment={commentId => deleteComment(commentId)}
                 />
               )}
             </>
           )}
 
-          {!loadingComments && !error && !formIsSHow && (
+          {!loadingComments && !error && !formIsShow && (
             <button
               data-cy="WriteCommentButton"
               type="button"
@@ -105,7 +110,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           )}
         </div>
 
-        {formIsSHow && (
+        {formIsShow && (
           <NewCommentForm key={id} addNewComment={addNewComment} />
         )}
       </div>

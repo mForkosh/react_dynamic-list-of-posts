@@ -31,23 +31,23 @@ export const NewCommentForm: React.FC<Props> = ({ addNewComment }) => {
   async function submitComment(event: React.FormEvent) {
     event.preventDefault();
 
-    const nameIsValid = authorName.trim().length === 0;
-    const emailIsValid = authorEmail.trim().length === 0;
-    const commentTextIsValidt = commentText.trim().length === 0;
+    const nameIsInvalid = authorName.trim().length === 0;
+    const emailIsInvalid = authorEmail.trim().length === 0;
+    const commentTextIsInvalid = commentText.trim().length === 0;
 
-    if (nameIsValid) {
+    if (nameIsInvalid) {
       setErrorAuthorName(true);
     }
 
-    if (emailIsValid) {
+    if (emailIsInvalid) {
       setErrorAuthorEmail(true);
     }
 
-    if (commentTextIsValidt) {
+    if (commentTextIsInvalid) {
       setErrorCommentText(true);
     }
 
-    if (nameIsValid || emailIsValid || commentTextIsValidt) {
+    if (nameIsInvalid || emailIsInvalid || commentTextIsInvalid) {
       return;
     }
 

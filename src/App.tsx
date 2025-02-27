@@ -8,7 +8,7 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User } from './types/User';
 import { getAllUsers } from './api/fetchUsers';
 import { Post } from './types/Post';
@@ -22,16 +22,20 @@ export const App = () => {
   const [selectedPosts, setSelectedPosts] = useState<null | Post>(null);
 
   const [loadingData, setLoadingData] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
 
-  useMemo(async () => {
-    try {
-      const loadedUsers: User[] = await getAllUsers();
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const loadedUsers: User[] = await getAllUsers();
 
-      setAllUsers(loadedUsers);
-    } catch {
-      setError(true);
+        setAllUsers(loadedUsers);
+      } catch {
+        setError('Failed to get a list of users');
+      }
     }
+
+    fetchUsers();
   }, []); //Get all users
 
   async function selectUser(user: User) {
@@ -44,7 +48,7 @@ export const App = () => {
 
       setUserPosts(loadedUserPosts);
     } catch {
-      setError(true);
+      setError('Failed to get a list of user posts');
     } finally {
       setLoadingData(false);
     }
@@ -78,7 +82,7 @@ export const App = () => {
                         className="notification is-danger"
                         data-cy="PostsLoadingError"
                       >
-                        Something went wrong!
+                        {error}
                       </div>
                     )}
 

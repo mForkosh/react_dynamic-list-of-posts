@@ -9,6 +9,6 @@ export const addNewComment = (data: Omit<Comment, 'id'>): Promise<Comment> => {
   return client.post('/comments', data);
 };
 
-export const deletePostComment = (id: number) => {
+export const deletePostComment = (id: number): Promise<unknown> => {
   return client.delete(`/comments/${id}`);
 };

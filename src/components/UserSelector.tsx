@@ -21,7 +21,7 @@ export const UserSelector: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    const hendlClick = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (
         dropDownMenu.current &&
         e.target instanceof Node &&
@@ -31,10 +31,10 @@ export const UserSelector: React.FC<Props> = ({
       }
     };
 
-    document.addEventListener('click', hendlClick);
+    document.addEventListener('click', handleClick);
 
     return () => {
-      document.removeEventListener('click', hendlClick);
+      document.removeEventListener('click', handleClick);
     };
   }, []);
 
